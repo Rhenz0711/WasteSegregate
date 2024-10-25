@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Waste Segregation Game</title>
+  
+</head>
+
+<body>
+  <h1>LET'S SEGREGATE</h1>
+  <p class="description">Drag the waste to the correct bin</p>
+  <p id="score" class="gameScore">Score: 0</p>
+
+  <div class="game-area">
+    <div class="bin" ondrop="drop(event)" ondragover="allowDrop(event)" data-type="biodegradable">
+        <img src="src/bin biodegradable.png" alt="">
+        <h2>Biodegradable</h2>
+    </div>
+    <div class="bin" ondrop="drop(event)" ondragover="allowDrop(event)" data-type="non-biodegradable">
+      <img src="src/bin nonbiodegradable.png" alt="">
+      <h2>Non-Biodegradable</h2>
+    </div>
+  </div>
+
+  <div class="trash-items">
+    <div class="trash-item" draggable="true" ondragstart="drag(event)" id="bananaPeel" data-type="biodegradable">
+      <img src="src/banana peel.png" alt="Banana Peel">
+    </div>
+    <div class="trash-item hidden" draggable="true" ondragstart="drag(event)" id="plasticBottle" data-type="non-biodegradable">
+      <img src="https://via.placeholder.com/100?text=Plastic+Bottle" alt="Plastic Bottle">
+    </div>
+    <div class="trash-item hidden" draggable="true" ondragstart="drag(event)" id="paper" data-type="biodegradable">
+      <img src="https://via.placeholder.com/100?text=Paper" alt="Paper">
+    </div>
+    <div class="trash-item hidden" draggable="true" ondragstart="drag(event)" id="can" data-type="non-biodegradable">
+      <img src="https://via.placeholder.com/100?text=Can" alt="Can">
+    </div>
+  </div>
+
+  <script>
+    let score = 0;
+    let currentItemIndex = 0;
+    const trashItems = document.querySelectorAll('.trash-item');
+
+    function allowDrop(event) {
+      event.preventDefault();
+    }
+
+    function drag(event) {
+      event.dataTransfer.setData("text", event.target.closest('.trash-item').id);
+    }
+
+    function drop(event) {
+      event.preventDefault();
+      const itemId = event.dataTransfer.getData("text");
+      const trashItem = document.getElementById(itemId);
+      const binElement = event.target.closest('.bin'); // Get the closest .bin element (in case user drops on h2 or img)
+      
+      if (!binElement) return; // Prevent issues if drop happens outside bins
+
+      const binType = binElement.getAttribute("data-type");
+
+      if (trashItem.getAttribute("data-type") === binType) {
+        // Correct bin
+        trashItem.classList.add("hidden");
+        score += 10;
+        document.getElementById("score").innerText = "Score: " + score;
+        showNextTrashItem();
+      } else {
+        // Incorrect bin
+        alert("Wrong bin! Try again.");
+        score -= 5;
+        document.getElementById("score").innerText = "Score: " + score;
+      }
+    }
+
+    function showNextTrashItem() {
+      currentItemIndex++;
+      if (currentItemIndex < trashItems.length) {
+        trashItems[currentItemIndex].classList.remove("hidden");
+      } else {
+        alert("Game Over! Your final score is: " + score);
+      }
+    }
+
+    // Start with the first item visible
+    window.onload = () => {
+      trashItems[currentItemIndex].classList.remove("hidden");
+    };
+  </script>
+
+
+
+</body>
+</html>
