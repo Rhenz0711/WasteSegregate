@@ -1,28 +1,31 @@
 let score = 0;
 let currentItemIndex = 0;
 const trashItems = document.querySelectorAll('.trash-item');
+let draggedItem = null;
 
+// Allow drop event
 function allowDrop(event) {
   event.preventDefault();
 }
 
+// Drag event for desktop
 function drag(event) {
-  event.dataTransfer.setData("text", event.target.closest('.trash-item').id);
+  draggedItem = event.target.closest('.trash-item');
+  event.dataTransfer.setData("text", draggedItem.id);
 }
 
+// Drop event
 function drop(event) {
   event.preventDefault();
-  const itemId = event.dataTransfer.getData("text");
-  const trashItem = document.getElementById(itemId);
-  const binElement = event.target.closest('.bin'); // Get the closest .bin element (in case user drops on h2 or img)
-  
-  if (!binElement) return; // Prevent issues if drop happens outside bins
+  const binElement = event.target.closest('.bin');
+  if (!binElement) return;
 
   const binType = binElement.getAttribute("data-type");
+  const itemType = draggedItem.getAttribute("data-type");
 
-  if (trashItem.getAttribute("data-type") === binType) {
+  if (itemType === binType) {
     // Correct bin
-    trashItem.classList.add("hidden");
+    draggedItem.classList.add("hidden");
     score += 10;
     document.getElementById("score").innerText = "Score: " + score;
     showNextTrashItem();
@@ -32,6 +35,39 @@ function drop(event) {
     score -= 5;
     document.getElementById("score").innerText = "Score: " + score;
   }
+  draggedItem = null; // Clear the dragged item after drop
+}
+
+// Touch event handlers for mobile
+function touchStart(event) {
+  draggedItem = event.target.closest('.trash-item');
+}
+
+function touchMove(event) {
+  event.preventDefault(); // Prevent scrolling while dragging on mobile
+}
+
+function touchEnd(event) {
+  const touchTarget = document.elementFromPoint(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+  const binElement = touchTarget.closest('.bin');
+  if (binElement && draggedItem) {
+    const binType = binElement.getAttribute("data-type");
+    const itemType = draggedItem.getAttribute("data-type");
+
+    if (itemType === binType) {
+      // Correct bin
+      draggedItem.classList.add("hidden");
+      score += 10;
+      document.getElementById("score").innerText = "Score: " + score;
+      showNextTrashItem();
+    } else {
+      // Incorrect bin
+      alert("Wrong bin! Try again.");
+      score -= 5;
+      document.getElementById("score").innerText = "Score: " + score;
+    }
+  }
+  draggedItem = null;
 }
 
 function showNextTrashItem() {
@@ -43,10 +79,15 @@ function showNextTrashItem() {
   }
 }
 
-// Start with the first item visible
+// Attach event listeners for touch on mobile and drag for desktop
+trashItems.forEach(item => {
+  item.addEventListener('dragstart', drag);
+  item.addEventListener('touchstart', touchStart, { passive: false });
+  item.addEventListener('touchmove', touchMove, { passive: false });
+  item.addEventListener('touchend', touchEnd);
+});
+
+// Show the first trash item when the page loads
 window.onload = () => {
   trashItems[currentItemIndex].classList.remove("hidden");
 };
-
-
-
